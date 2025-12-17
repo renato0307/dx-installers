@@ -3,6 +3,7 @@
 # Supports Windows
 #
 # Environment variables:
+#   $env:GITHUB_TOKEN - Required. GitHub personal access token for private repo access
 #   $env:CLYDE_VERSION - Install specific version (e.g., "1.0.2"). Default: latest
 #   $env:INSTALL_DEPENDENCIES - If "true", runs "clyde install all" after installation
 #Requires -Version 5.1
@@ -125,12 +126,15 @@ function Install-Clyde {
 
         Write-LogInfo "Downloading from $url..."
         try {
-            Invoke-WebRequest -Uri $url -OutFile $tempFile -ErrorAction Stop
+            $headers = @{
+                "Authorization" = "token $env:GITHUB_TOKEN"
+            }
+            Invoke-WebRequest -Uri $url -OutFile $tempFile -Headers $headers -ErrorAction Stop
         } catch {
             if ($Version -ne "latest") {
                 Write-LogError "Failed to download Clyde v$Version. Please verify the version exists at https://github.com/$GITHUB_REPO/releases"
             } else {
-                Write-LogError "Failed to download Clyde. Please check your internet connection."
+                Write-LogError "Failed to download Clyde. Please check your GITHUB_TOKEN and internet connection."
             }
         }
 
@@ -191,6 +195,11 @@ function Main {
     Write-Host ""
     Write-LogInfo "Clyde Installer"
     Write-Host ""
+
+    # Check for GITHUB_TOKEN
+    if (-not $env:GITHUB_TOKEN) {
+        Write-LogError "GITHUB_TOKEN environment variable is required. Create a token at https://github.com/settings/tokens with 'repo' scope and set: `$env:GITHUB_TOKEN = 'your_token'"
+    }
 
     # Detect architecture
     $arch = Get-Architecture

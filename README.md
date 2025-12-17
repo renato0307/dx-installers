@@ -2,26 +2,43 @@
 
 Installation scripts for OutSystems DX tools.
 
+## Prerequisites
+
+Create a GitHub personal access token with `repo` scope at https://github.com/settings/tokens
+
+Set the token:
+```bash
+# macOS / Linux
+export GITHUB_TOKEN=your_token_here
+
+# Windows
+$env:GITHUB_TOKEN = "your_token_here"
+```
+
 ## Install Clyde
 
 **macOS / Linux:**
 ```bash
-curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
+GITHUB_TOKEN=your_token curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
 ```
 
 **Windows:**
 ```powershell
+$env:GITHUB_TOKEN = "your_token"
 iex (iwr 'https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.ps1').Content
 ```
+
+**Or download directly from releases:** https://github.com/OutSystems/dx-claude-code-marketplace/releases
 
 ### Options
 
 **Specific version:**
 ```bash
 # macOS / Linux
-CLYDE_VERSION=1.0.2 curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
+GITHUB_TOKEN=your_token CLYDE_VERSION=1.0.2 curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
 
 # Windows
+$env:GITHUB_TOKEN = "your_token"
 $env:CLYDE_VERSION = "1.0.2"
 iex (iwr 'https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.ps1').Content
 ```
@@ -29,9 +46,10 @@ iex (iwr 'https://raw.githubusercontent.com/renato0307/dx-installers/main/instal
 **Install with dependencies (Claude Code CLI, GitHub CLI, Atlassian CLI):**
 ```bash
 # macOS / Linux
-INSTALL_DEPENDENCIES=true curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
+GITHUB_TOKEN=your_token INSTALL_DEPENDENCIES=true curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
 
 # Windows
+$env:GITHUB_TOKEN = "your_token"
 $env:INSTALL_DEPENDENCIES = "true"
 iex (iwr 'https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.ps1').Content
 ```
