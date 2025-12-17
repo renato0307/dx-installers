@@ -110,7 +110,7 @@ resolve_version() {
         echo "$CLYDE_VERSION"
     else
         # Fetch latest version from GitHub API
-        log_info "Fetching latest version..."
+        log_info "Fetching latest version..." >&2
         local latest_tag
         latest_tag=$(curl -sH "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" | \
