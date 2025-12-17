@@ -120,8 +120,8 @@ resolve_version() {
             log_error "Failed to fetch latest version. Check your GITHUB_TOKEN permissions."
         fi
 
-        # Remove 'clyde-v' prefix to get version number
-        echo "${latest_tag#clyde-v}"
+        # Remove 'v' prefix to get version number
+        echo "${latest_tag#v}"
     fi
 }
 
@@ -131,7 +131,7 @@ get_download_url() {
     local os="$2"
     local arch="$3"
 
-    echo "https://github.com/${GITHUB_REPO}/releases/download/clyde-v${version}/clyde_${os}_${arch}.tar.gz"
+    echo "https://github.com/${GITHUB_REPO}/releases/download/v${version}/clyde_${os}_${arch}.tar.gz"
 }
 
 # Install Clyde binary

@@ -96,8 +96,8 @@ function Resolve-Version {
             Write-LogError "Failed to fetch latest version. Check your GITHUB_TOKEN permissions."
         }
 
-        # Remove 'clyde-v' prefix to get version number
-        return $latestTag -replace '^clyde-v', ''
+        # Remove 'v' prefix to get version number
+        return $latestTag -replace '^v', ''
     } catch {
         Write-LogError "Failed to fetch latest version from GitHub API: $_"
     }
@@ -107,7 +107,7 @@ function Resolve-Version {
 function Get-DownloadUrl {
     param([string]$Version, [string]$Arch)
 
-    return "https://github.com/$GITHUB_REPO/releases/download/clyde-v${Version}/clyde_windows_${Arch}.zip"
+    return "https://github.com/$GITHUB_REPO/releases/download/v${Version}/clyde_windows_${Arch}.zip"
 }
 
 # Install Clyde binary
