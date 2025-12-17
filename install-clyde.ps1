@@ -82,18 +82,32 @@ function Resolve-Version {
     if ($env:CLYDE_VERSION) {
         return $env:CLYDE_VERSION
     }
-    return "latest"
+
+    # Fetch latest version from GitHub API
+    Write-LogInfo "Fetching latest version..."
+    try {
+        $headers = @{
+            "Authorization" = "token $env:GITHUB_TOKEN"
+        }
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$GITHUB_REPO/releases/latest" -Headers $headers
+        $latestTag = $release.tag_name
+
+        if (-not $latestTag) {
+            Write-LogError "Failed to fetch latest version. Check your GITHUB_TOKEN permissions."
+        }
+
+        # Remove 'clyde-v' prefix to get version number
+        return $latestTag -replace '^clyde-v', ''
+    } catch {
+        Write-LogError "Failed to fetch latest version from GitHub API: $_"
+    }
 }
 
 # Construct download URL
 function Get-DownloadUrl {
     param([string]$Version, [string]$Arch)
 
-    if ($Version -eq "latest") {
-        return "https://github.com/$GITHUB_REPO/releases/latest/download/clyde_windows_${Arch}.zip"
-    } else {
-        return "https://github.com/$GITHUB_REPO/releases/download/clyde-v${Version}/clyde_windows_${Arch}.zip"
-    }
+    return "https://github.com/$GITHUB_REPO/releases/download/clyde-v${Version}/clyde_windows_${Arch}.zip"
 }
 
 # Install Clyde binary
