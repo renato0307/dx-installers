@@ -13,14 +13,12 @@ curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/instal
 
 **Specific version:**
 ```bash
-export CLYDE_VERSION=1.0.2
-curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
+CLYDE_VERSION=1.0.2 curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
 ```
 
 **With dependencies:**
 ```bash
-export INSTALL_DEPENDENCIES=true
-curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
+INSTALL_DEPENDENCIES=true curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
 ```
 
 ### Install Clyde (PowerShell/Windows)
@@ -77,12 +75,10 @@ Clyde is the OutSystems DX CLI tool for Claude Code workflows. It helps you mana
 curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
 
 # Install specific version
-export CLYDE_VERSION=1.0.2
-curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
+CLYDE_VERSION=1.0.2 curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
 
 # Install with all dependencies
-export INSTALL_DEPENDENCIES=true
-curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
+INSTALL_DEPENDENCIES=true curl -sfL https://raw.githubusercontent.com/renato0307/dx-installers/main/install-clyde.sh | bash
 ```
 
 ### install-dependencies.sh / install-dependencies.ps1
