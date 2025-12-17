@@ -125,13 +125,29 @@ resolve_version() {
     fi
 }
 
-# Construct download URL
-get_download_url() {
+# Get asset download URL from GitHub API
+get_asset_url() {
     local version="$1"
     local os="$2"
     local arch="$3"
+    local asset_name="clyde_${os}_${arch}.tar.gz"
 
-    echo "https://github.com/${GITHUB_REPO}/releases/download/v${version}/clyde_${os}_${arch}.tar.gz"
+    log_info "Fetching asset URL..." >&2
+
+    # Get the release by tag
+    local release_data
+    release_data=$(curl -sH "Authorization: token $GITHUB_TOKEN" \
+        "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/v${version}")
+
+    # Extract the asset ID for our platform
+    local asset_id
+    asset_id=$(echo "$release_data" | grep -A 3 "\"name\": \"${asset_name}\"" | grep '"id"' | head -1 | sed 's/[^0-9]//g')
+
+    if [[ -z "$asset_id" ]]; then
+        log_error "Failed to find asset ${asset_name} in release v${version}"
+    fi
+
+    echo "https://api.github.com/repos/${GITHUB_REPO}/releases/assets/${asset_id}"
 }
 
 # Install Clyde binary
@@ -157,12 +173,12 @@ install_clyde() {
 
     # Download
     local url
-    url=$(get_download_url "$version" "$os" "$arch")
+    url=$(get_asset_url "$version" "$os" "$arch")
     local temp_file
     temp_file=$(mktemp)
 
-    log_info "Downloading from $url..."
-    if ! curl -fL -H "Authorization: token $GITHUB_TOKEN" "$url" -o "$temp_file"; then
+    log_info "Downloading Clyde v${version}..."
+    if ! curl -fL -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/octet-stream" "$url" -o "$temp_file"; then
         rm -f "$temp_file"
         if [[ "$version" != "latest" ]]; then
             log_error "Failed to download Clyde v$version. Please verify the version exists at https://github.com/${GITHUB_REPO}/releases"
