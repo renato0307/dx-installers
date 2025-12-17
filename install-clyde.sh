@@ -3,6 +3,7 @@
 # Supports macOS and Linux
 #
 # Environment variables:
+#   GITHUB_TOKEN - Required. GitHub personal access token for private repo access
 #   CLYDE_VERSION - Install specific version (e.g., "1.0.2"). Default: latest
 #   INSTALL_DEPENDENCIES - If "true", runs "clyde install all" after installation
 set -euo pipefail
@@ -153,12 +154,12 @@ install_clyde() {
     temp_file=$(mktemp)
 
     log_info "Downloading from $url..."
-    if ! curl -fL "$url" -o "$temp_file"; then
+    if ! curl -fL -H "Authorization: token $GITHUB_TOKEN" "$url" -o "$temp_file"; then
         rm -f "$temp_file"
         if [[ "$version" != "latest" ]]; then
             log_error "Failed to download Clyde v$version. Please verify the version exists at https://github.com/${GITHUB_REPO}/releases"
         else
-            log_error "Failed to download Clyde. Please check your internet connection."
+            log_error "Failed to download Clyde. Please check your GITHUB_TOKEN and internet connection."
         fi
     fi
 
@@ -217,6 +218,11 @@ main() {
     echo ""
     log_info "Clyde Installer"
     echo ""
+
+    # Check for GITHUB_TOKEN
+    if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+        log_error "GITHUB_TOKEN environment variable is required. Create a token at https://github.com/settings/tokens with 'repo' scope and set: export GITHUB_TOKEN=your_token"
+    fi
 
     # Detect system
     local os
