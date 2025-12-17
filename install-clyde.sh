@@ -134,14 +134,14 @@ get_asset_url() {
 
     log_info "Fetching asset URL..." >&2
 
-    # Get the release by tag
-    local release_data
-    release_data=$(curl -sH "Authorization: token $GITHUB_TOKEN" \
-        "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/v${version}")
-
-    # Extract the asset ID for our platform
+    # Get the release by tag and extract asset ID using grep and sed
     local asset_id
-    asset_id=$(echo "$release_data" | grep -A 3 "\"name\": \"${asset_name}\"" | grep '"id"' | head -1 | sed 's/[^0-9]//g')
+    asset_id=$(curl -sH "Authorization: token $GITHUB_TOKEN" \
+        "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/v${version}" | \
+        grep -B 2 "\"name\": \"${asset_name}\"" | \
+        grep '"id"' | \
+        head -1 | \
+        grep -o '[0-9]\+')
 
     if [[ -z "$asset_id" ]]; then
         log_error "Failed to find asset ${asset_name} in release v${version}"
