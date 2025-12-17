@@ -82,17 +82,53 @@ function Resolve-Version {
     if ($env:CLYDE_VERSION) {
         return $env:CLYDE_VERSION
     }
-    return "latest"
+
+    # Fetch latest version from GitHub API
+    Write-LogInfo "Fetching latest version..."
+    try {
+        $headers = @{
+            "Authorization" = "token $env:GITHUB_TOKEN"
+        }
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$GITHUB_REPO/releases/latest" -Headers $headers
+        $latestTag = $release.tag_name
+
+        if (-not $latestTag) {
+            Write-LogError "Failed to fetch latest version. Check your GITHUB_TOKEN permissions."
+        }
+
+        # Remove 'v' prefix to get version number
+        return $latestTag -replace '^v', ''
+    } catch {
+        Write-LogError "Failed to fetch latest version from GitHub API: $_"
+    }
 }
 
-# Construct download URL
-function Get-DownloadUrl {
+# Get asset download URL from GitHub API
+function Get-AssetUrl {
     param([string]$Version, [string]$Arch)
 
-    if ($Version -eq "latest") {
-        return "https://github.com/$GITHUB_REPO/releases/latest/download/clyde_windows_${Arch}.zip"
-    } else {
-        return "https://github.com/$GITHUB_REPO/releases/download/clyde-v${Version}/clyde_windows_${Arch}.zip"
+    $assetName = "clyde_windows_${Arch}.zip"
+
+    Write-LogInfo "Fetching asset URL..."
+
+    try {
+        $headers = @{
+            "Authorization" = "token $env:GITHUB_TOKEN"
+        }
+
+        # Get the release by tag
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$GITHUB_REPO/releases/tags/v${Version}" -Headers $headers
+
+        # Find the asset for our platform
+        $asset = $release.assets | Where-Object { $_.name -eq $assetName } | Select-Object -First 1
+
+        if ($null -eq $asset) {
+            Write-LogError "Failed to find asset ${assetName} in release v${Version}"
+        }
+
+        return "https://api.github.com/repos/$GITHUB_REPO/releases/assets/$($asset.id)"
+    } catch {
+        Write-LogError "Failed to fetch asset URL: $_"
     }
 }
 
@@ -121,13 +157,14 @@ function Install-Clyde {
 
     try {
         # Download
-        $url = Get-DownloadUrl -Version $Version -Arch $Arch
+        $url = Get-AssetUrl -Version $Version -Arch $Arch
         $tempFile = Join-Path $env:TEMP "clyde.zip"
 
-        Write-LogInfo "Downloading from $url..."
+        Write-LogInfo "Downloading Clyde v${Version}..."
         try {
             $headers = @{
                 "Authorization" = "token $env:GITHUB_TOKEN"
+                "Accept" = "application/octet-stream"
             }
             Invoke-WebRequest -Uri $url -OutFile $tempFile -Headers $headers -ErrorAction Stop
         } catch {

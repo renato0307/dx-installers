@@ -109,21 +109,45 @@ resolve_version() {
     if [[ -n "${CLYDE_VERSION:-}" ]]; then
         echo "$CLYDE_VERSION"
     else
-        echo "latest"
+        # Fetch latest version from GitHub API
+        log_info "Fetching latest version..." >&2
+        local latest_tag
+        latest_tag=$(curl -sH "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" | \
+            grep '"tag_name"' | cut -d'"' -f4)
+
+        if [[ -z "$latest_tag" ]]; then
+            log_error "Failed to fetch latest version. Check your GITHUB_TOKEN permissions."
+        fi
+
+        # Remove 'v' prefix to get version number
+        echo "${latest_tag#v}"
     fi
 }
 
-# Construct download URL
-get_download_url() {
+# Get asset download URL from GitHub API
+get_asset_url() {
     local version="$1"
     local os="$2"
     local arch="$3"
+    local asset_name="clyde_${os}_${arch}.tar.gz"
 
-    if [[ "$version" == "latest" ]]; then
-        echo "https://github.com/${GITHUB_REPO}/releases/latest/download/clyde_${os}_${arch}.tar.gz"
-    else
-        echo "https://github.com/${GITHUB_REPO}/releases/download/clyde-v${version}/clyde_${os}_${arch}.tar.gz"
+    log_info "Fetching asset URL..." >&2
+
+    # Get the release by tag and extract asset ID using grep and sed
+    local asset_id
+    asset_id=$(curl -sH "Authorization: token $GITHUB_TOKEN" \
+        "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/v${version}" | \
+        grep -B 2 "\"name\": \"${asset_name}\"" | \
+        grep '"id"' | \
+        head -1 | \
+        grep -o '[0-9]\+')
+
+    if [[ -z "$asset_id" ]]; then
+        log_error "Failed to find asset ${asset_name} in release v${version}"
     fi
+
+    echo "https://api.github.com/repos/${GITHUB_REPO}/releases/assets/${asset_id}"
 }
 
 # Install Clyde binary
@@ -149,12 +173,12 @@ install_clyde() {
 
     # Download
     local url
-    url=$(get_download_url "$version" "$os" "$arch")
+    url=$(get_asset_url "$version" "$os" "$arch")
     local temp_file
     temp_file=$(mktemp)
 
-    log_info "Downloading from $url..."
-    if ! curl -fL -H "Authorization: token $GITHUB_TOKEN" "$url" -o "$temp_file"; then
+    log_info "Downloading Clyde v${version}..."
+    if ! curl -fL -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/octet-stream" "$url" -o "$temp_file"; then
         rm -f "$temp_file"
         if [[ "$version" != "latest" ]]; then
             log_error "Failed to download Clyde v$version. Please verify the version exists at https://github.com/${GITHUB_REPO}/releases"
